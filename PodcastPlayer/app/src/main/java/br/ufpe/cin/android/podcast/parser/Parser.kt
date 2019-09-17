@@ -1,5 +1,6 @@
-package br.ufpe.cin.android.podcast
+package br.ufpe.cin.android.podcast.parser
 
+import br.ufpe.cin.android.podcast.dto.ItemFeedDto
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlPullParserFactory
@@ -47,9 +48,9 @@ object Parser {
         return items
     }
 
-    //Este metodo faz o parsing de RSS gerando objetos ItemFeed
+    //Este metodo faz o parsing de RSS gerando objetos ItemFeedDto
     @Throws(XmlPullParserException::class, IOException::class)
-    fun parse(rssFeed: String): List<ItemFeed> {
+    fun parse(rssFeed: String): List<ItemFeedDto> {
         val factory = XmlPullParserFactory.newInstance()
         val xpp = factory.newPullParser()
         xpp.setInput(StringReader(rssFeed))
@@ -58,8 +59,8 @@ object Parser {
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
-    fun readRss(parser: XmlPullParser): List<ItemFeed> {
-        val items = ArrayList<ItemFeed>()
+    fun readRss(parser: XmlPullParser): List<ItemFeedDto> {
+        val items = ArrayList<ItemFeedDto>()
         parser.require(XmlPullParser.START_TAG, null, "rss")
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -76,8 +77,8 @@ object Parser {
     }
 
     @Throws(IOException::class, XmlPullParserException::class)
-    fun readChannel(parser: XmlPullParser): List<ItemFeed> {
-        val items = ArrayList<ItemFeed>()
+    fun readChannel(parser: XmlPullParser): List<ItemFeedDto> {
+        val items = ArrayList<ItemFeedDto>()
         parser.require(XmlPullParser.START_TAG, null, "channel")
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -94,11 +95,12 @@ object Parser {
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
-    fun readItem(parser: XmlPullParser): ItemFeed {
+    fun readItem(parser: XmlPullParser): ItemFeedDto {
         var title: String? = null
         var link: String? = null
         var pubDate: String? = null
         var description: String? = null
+        var downloadLink: String? = null
         parser.require(XmlPullParser.START_TAG, null, "item")
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -112,12 +114,22 @@ object Parser {
             } else if (name == "pubDate") {
                 pubDate = readData(parser, "pubDate")
             } else if (name == "description") {
-                description = readData(parser, "description")
+                description =
+                    readData(parser, "description")
+            } else if (name == "enclosure") {
+                downloadLink = parser.getAttributeValue(null, "url")
+                skip(parser)
             } else {
                 skip(parser)
             }
         }
-        return ItemFeed(title!!, link!!, pubDate!!, description!!, "carregar o link")
+        return ItemFeedDto(
+            title!!,
+            link!!,
+            pubDate!!,
+            description!!,
+            downloadLink!!
+        )
     }
 
     // Processa tags de forma parametrizada no feed.
