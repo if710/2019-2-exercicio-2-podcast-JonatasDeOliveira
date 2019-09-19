@@ -14,7 +14,7 @@ class EpisodeDetailActivity : AppCompatActivity() {
         setContentView(R.layout.activity_episode_detail)
 
         item_desc_title.text = intent.getStringExtra("title")
-        item_desc_pubDate.text = intent.getStringExtra("pubDate")
+        item_desc_link.text = intent.getStringExtra("link")
         item_desc_description.text = intent.getStringExtra("description")
 
         item_desc_description.movementMethod = ScrollingMovementMethod()

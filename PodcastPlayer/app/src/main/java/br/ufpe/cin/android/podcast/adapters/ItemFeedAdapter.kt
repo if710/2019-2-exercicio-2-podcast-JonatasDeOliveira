@@ -1,5 +1,6 @@
 package br.ufpe.cin.android.podcast.adapters
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
@@ -27,29 +28,25 @@ class ItemFeedAdapter(private val items: List<ItemFeedDto>, private val main: Ma
         val item = items[position]
         holder.title?.text = item.title
         holder.date?.text = item.pubDate
+        holder.action.setOnClickListener {
+            Toast.makeText(main.applicationContext,
+                "We are working to make this work",
+                Toast.LENGTH_SHORT).show()
+        }
 
         holder.itemView.setOnClickListener {
             val intent = Intent(main.applicationContext, EpisodeDetailActivity::class.java)
             intent.putExtra("title", item.title)
             intent.putExtra("description", item.description)
-            intent.putExtra("pubDate", item.pubDate)
+            intent.putExtra("link", item.link)
 
             main.startActivity(intent)
         }
     }
 
-    class ViewHolder (item : View) : RecyclerView.ViewHolder(item), View.OnClickListener {
+    class ViewHolder (item : View) : RecyclerView.ViewHolder(item) {
         val title = item.item_title
         val date = item.item_date
         val action = item.item_action
-
-        init {
-            item.setOnClickListener(this)
-        }
-
-        override fun onClick(v: View) {
-            val position = adapterPosition
-            Toast.makeText(v.context, "Clicou no item da posição: $position", Toast.LENGTH_SHORT).show()
-        }
     }
 }

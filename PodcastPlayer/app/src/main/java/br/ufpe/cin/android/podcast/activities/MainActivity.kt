@@ -2,6 +2,7 @@ package br.ufpe.cin.android.podcast.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import br.ufpe.cin.android.podcast.dto.ItemFeedDto
@@ -25,15 +26,24 @@ class MainActivity : AppCompatActivity() {
 
         val url = "https://s3-us-west-1.amazonaws.com/podcasts.thepolyglotdeveloper.com/podcast.xml?fbclid=IwAR3X1VxOU4OFdxG-2m0IKHLwDXHFRavdx1ZndZ1T53OLRQk_XQlE168N1bI"
         var items: List<ItemFeedDto> = emptyList()
+
+        val db = ItemFeedDB.getDb(applicationContext)
         doAsync {
-            val xmlPodcast = URL(url).readText()
-            items = Parser.parse(xmlPodcast)
+            items = try {
+                val xmlPodcast = URL(url).readText()
+                Parser.parse(xmlPodcast)
+            } catch (ex: Throwable) {
+                Log.e("error", ex.message)
+                db.itemFeedDao().findAllItemsFeed().map { itemFeed ->
+                    ItemFeedMapper.toDto(itemFeed)
+                }
+            }
+
             uiThread {
                 list_item_feed.adapter =
                     ItemFeedAdapter(items, this.weakRef.get()!!)
             }
 
-            val db = ItemFeedDB.getDb(applicationContext)
             items.forEach {
                 val item = ItemFeedMapper.fromDto(it)
                 db.itemFeedDao().insertItemFeed(item)
